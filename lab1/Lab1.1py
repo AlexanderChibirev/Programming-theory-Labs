@@ -1,0 +1,15 @@
+url = "https://vk.com/albums78380730" #Задаём url
+html = urllib2.urlopen(url).read()   #получаем ответ сервера и так же мы содержимое сайта кидаем в строковую переменную 
+normal_html = BeautifulSoup(''.join(html)) # разметка страницы делаем приличный вид
+tags_image = normal_html.findAll('img') # навигация по супу ищем img
+if len(tags_image) != 0:
+    g = Grab() #создаем объект граба
+    for img in tags_image: #Пробегаемся тегам
+         image_url= img['src']  #из списка вытаскиваем нужные нам ссылки для скачки
+        if urlparse.urlparse(image_url).hostname == '':#разделяем на http vk.com и путь файла если нет хоста, тогда ...
+            image_url = urlparse.urljoin(url, image_url)#  преобразуем ее в абсолютную
+        g.go(image_url) #^
+        imageName = basename(urlsplit(image_url)[2]) #через функции получаем имя файла с расширением
+        g.response.save(r'images\%s' % imageName) #Сохраняем на диск в папку images.
+else:
+    print 'фотки не были найдены'
