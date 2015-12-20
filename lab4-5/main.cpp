@@ -1,11 +1,11 @@
 #include <SFML/Graphics.hpp>
-#include "Òonfig.h"
+#include "—Åonfig.h"
 #include <string>
 #include <array>
 #include <iostream>
 #include <algorithm>
 #include <windows.h>
-//cd
+
 
 
 
@@ -13,7 +13,7 @@ bool is_image(string file_name) {
 	if (!strrchr(file_name.c_str(), '.')) {
 		return false;
 	}
-	std::array<string, 5> extArray = { "jpg","jpeg","png","gif","bmp" };
+	std::array<string, 5> extArray = { "JPG","jpeg","png","gif","bmp" };
 	return std::any_of(extArray.begin(), extArray.end(), [&](const std::string &ext) {
 		return ext == file_name.substr(file_name.find_last_of(".") + 1);
 	});
@@ -31,7 +31,7 @@ Files get_file_list(string const & oldPath) {
 	unsigned long i = 0;
 
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//ÔÓËÒÍ  Ù‡ÈÎ‡
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//–ø–æ–∏—Å–∫  —Ñ–∞–π–ª–∞
 	if (firstFile != INVALID_HANDLE_VALUE) {
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -175,7 +175,7 @@ Sprite create_sprite(const char* fileName) {
 	return sprite;
 }
 void click_btn_mouse(RenderWindow &window, Files files, Picture &picture, Sprite left, Sprite right, Sprite plus, Sprite minus, Sys sys, Vector2f pos) {
-	if (!picture.dragMove) {
+	if (!picture.drag_move) {
 		if (left.getGlobalBounds().contains(pos.x, pos.y)) {
 			switch_prev(window, picture, files, sys);
 		}
@@ -194,7 +194,7 @@ void click_btn_mouse(RenderWindow &window, Files files, Picture &picture, Sprite
 }
 
 void click_btn(RenderWindow &window, Files files, Picture &picture, Sprite left, Sprite right, Sprite plus, Sprite minus, Sys sys, Vector2f pos) {
-	if (!picture.dragMove) {
+	if (!picture.drag_move) {
 		if (Keyboard::isKeyPressed(Keyboard::Left)) {
 			switch_prev(window, picture, files, sys);
 		}
@@ -220,7 +220,7 @@ void picture_check_drag(Picture &picture, Vector2f pos, Sys sys) {
 	float pictWidth = picture_size.width * picture_scale.y;
 	if (pos.y < picture_pos.y + pictHeight / 2 && pos.x < picture_pos.x + pictWidth / 2 &&
 		pos.y > picture_pos.y - pictHeight / 2 && pos.x > picture_pos.x - pictWidth / 2) {
-		picture.dragMove = true;
+		picture.drag_move = true;
 		picture.st_drag_x = pos.x;
 		picture.st_drag_y = pos.y;
 		picture.shift_x = picture_pos.x - picture.st_drag_x;
@@ -237,7 +237,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 				delete[] files.files;
 				window.close();
 			}
-			if (picture.dragMove) {
+			if (picture.drag_move) {
 				drag(picture, pos, sys);
 			}
 			if (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) {
@@ -246,7 +246,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 			}
 
 			if (event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left) {
-				picture.dragMove = false;
+				picture.drag_move = false;
 			}
 
 			click_btn(window, files, picture, left, right, plus, minus, sys, pos);
@@ -270,6 +270,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 
 int main() {
 	Sys sys;
+	Picture picture;
 	cout << "input path " << "\n";
 	//
 	while (!directory_exists(sys.dir_path)) {
@@ -282,7 +283,6 @@ int main() {
 	View view = View(FloatRect(0, 0, float(sys.window_size.x), float(sys.window_size.y)));
 	window.setView(view);
 	Files files = get_file_list(sys.dir_path);
-	Picture picture;
 
 	if (files.arr_size > 0) {
 		window.setTitle(init_picture(window, files, picture, sys));
