@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "—Åonfig.h"
+#include "Òonfig.h"
 #include <string>
 #include <array>
 #include <iostream>
@@ -31,7 +31,7 @@ Files get_file_list(string const & oldPath) {
 	unsigned long i = 0;
 
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//–ø–æ–∏—Å–∫  —Ñ–∞–π–ª–∞
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//ÔÓËÒÍ  Ù‡ÈÎ‡
 	if (firstFile != INVALID_HANDLE_VALUE) {
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -111,9 +111,9 @@ void drag(Picture &picture, Vector2f & cursor, Sys sys) {
 }
 
 void picture_mid(Vector2u window_size, Picture &picture) {
-	picture.left = window_size.x *0.5f;
+	picture.left_bias = window_size.x *0.5f;
 	picture.top = window_size.y *0.5f;
-	picture.sprite->setPosition(Vector2f(picture.left, picture.top));
+	picture.sprite->setPosition(Vector2f(picture.left_bias, picture.top));
 }
 
 void switch_prev(RenderWindow & window, Picture & picture, Files & files, Sys & sys) {
@@ -139,21 +139,21 @@ void switch_next(RenderWindow & window, Picture &picture, Files & files, Sys & s
 }
 
 
-void draw_buttons(RenderWindow & window, Sys & sys, Sprite & left, Sprite & right, Sprite &plus, Sprite &minus, char &activeZoom) {
-	left.setPosition(Vector2f(0, float(sys.window_size.y * 0.5)));
-	right.setPosition(Vector2f(float(sys.window_size.x), float(sys.window_size.y * 0.5)));
-	plus.setPosition(Vector2f(float(sys.window_size.x) / 2 + 25, float(sys.window_size.y)));
-	minus.setPosition(Vector2f(float(sys.window_size.x) / 2 - 25, float(sys.window_size.y)));
-	window.draw(left);
-	window.draw(right);
+void draw_buttons(RenderWindow & window, Sys & sys, Picture & picture, char &activeZoom) {
+	picture.left.setPosition(Vector2f(0, float(sys.window_size.y * 0.5)));
+	picture.right.setPosition(Vector2f(float(sys.window_size.x), float(sys.window_size.y * 0.5)));
+	picture.plus.setPosition(Vector2f(float(sys.window_size.x) / 2 + 25, float(sys.window_size.y)));
+	picture.minus.setPosition(Vector2f(float(sys.window_size.x) / 2 - 25, float(sys.window_size.y)));
+	window.draw(picture.left);
+	window.draw(picture.right);
 	if (activeZoom != 1)
-		window.draw(plus);
+		window.draw(picture.plus);
 	if (activeZoom != 2)
-		window.draw(minus);
+		window.draw(picture.minus);
 }
 
 
-void draw_elements(RenderWindow & window, Sys & sys, Picture & picture, Sprite & left, Sprite & right, Sprite &plus, Sprite &minus) {
+void draw_elements(RenderWindow & window, Sys & sys, Picture & picture) {
 	picture.sprite->setTexture((*picture.texture));
 	window.draw((*picture.sprite));
 
@@ -164,36 +164,30 @@ void draw_elements(RenderWindow & window, Sys & sys, Picture & picture, Sprite &
 	else if (picture.zoom <= picture.smoth_zoom) {
 		activeZoom = 2;
 	}
-	draw_buttons(window, sys, left, right, plus, minus, activeZoom);
+	draw_buttons(window, sys, picture, activeZoom);
 }
 
-Sprite create_sprite(const char* fileName) {
-	Sprite sprite;
-	Texture *texture = new Texture;
-	texture->loadFromFile(fileName);
-	sprite.setTexture(*texture);
-	return sprite;
-}
-void click_btn_mouse(RenderWindow &window, Files files, Picture &picture, Sprite left, Sprite right, Sprite plus, Sprite minus, Sys sys, Vector2f pos) {
+
+void click_btn_mouse(RenderWindow &window, Files files, Picture &picture, Sys sys, Vector2f pos) {
 	if (!picture.drag_move) {
-		if (left.getGlobalBounds().contains(pos.x, pos.y)) {
+		if (picture.left.getGlobalBounds().contains(pos.x, pos.y)) {
 			switch_prev(window, picture, files, sys);
 		}
-		else if (right.getGlobalBounds().contains(pos.x, pos.y)) {
+		else if (picture.right.getGlobalBounds().contains(pos.x, pos.y)) {
 			switch_next(window, picture, files, sys);
 		}
-		else if (plus.getGlobalBounds().contains(pos.x, pos.y) && picture.zoom < 5) {
+		else if (picture.plus.getGlobalBounds().contains(pos.x, pos.y) && picture.zoom < 5) {
 			picture.zoom += picture.smoth_zoom;
 			window.setTitle(init_picture(window, files, picture, sys));
 		}
-		else if (minus.getGlobalBounds().contains(pos.x, pos.y) && picture.zoom > picture.smoth_zoom) {
+		else if (picture.minus.getGlobalBounds().contains(pos.x, pos.y) && picture.zoom > picture.smoth_zoom) {
 			picture.zoom -= picture.smoth_zoom;
 			window.setTitle(init_picture(window, files, picture, sys));
 		}
 	}
 }
 
-void click_btn(RenderWindow &window, Files files, Picture &picture, Sprite left, Sprite right, Sprite plus, Sprite minus, Sys sys, Vector2f pos) {
+void click_btn(RenderWindow &window, Files files, Picture &picture, Sys sys, Vector2f pos) {
 	if (!picture.drag_move) {
 		if (Keyboard::isKeyPressed(Keyboard::Left)) {
 			switch_prev(window, picture, files, sys);
@@ -227,7 +221,7 @@ void picture_check_drag(Picture &picture, Vector2f pos, Sys sys) {
 		picture.shift_y = picture_pos.y - picture.st_drag_y;
 	}
 }
-void start_program(RenderWindow &window, Files files, Picture &picture, Sprite left, Sprite right, Sprite plus, Sprite minus, Sys sys, View view) {
+void start_program(RenderWindow &window, Files files, Picture &picture, Sys sys, View view) {
 	while (window.isOpen()) {
 		Event event;
 		Vector2i pixelPos = Mouse::getPosition(window);
@@ -241,7 +235,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 				drag(picture, pos, sys);
 			}
 			if (event.type == Event::MouseButtonPressed && event.key.code == Mouse::Left) {
-				click_btn_mouse(window, files, picture, left, right, plus, minus, sys, pos);
+				click_btn_mouse(window, files, picture, sys, pos);
 				picture_check_drag(picture, pos, sys);
 			}
 
@@ -249,7 +243,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 				picture.drag_move = false;
 			}
 
-			click_btn(window, files, picture, left, right, plus, minus, sys, pos);
+			click_btn(window, files, picture, sys, pos);
 
 			if (event.type == Event::Resized) {
 				sys.window_size = window.getSize();
@@ -262,7 +256,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sprite l
 		view = View(FloatRect(0, 0, float(sys.window_size.x), float(sys.window_size.y)));
 		window.setView(view);
 
-		draw_elements(window, sys, picture, left, right, plus, minus);
+		draw_elements(window, sys, picture);
 		window.display();
 		sys.window_size = window.getSize();
 	}
@@ -287,20 +281,11 @@ int main() {
 	if (files.arr_size > 0) {
 		window.setTitle(init_picture(window, files, picture, sys));
 	}
-
-	Sprite left = create_sprite("images/left.png");
-	Sprite right = create_sprite("images/right.png");
-	Sprite plus = create_sprite("images/plus.png");
-	Sprite minus = create_sprite("images/minus.png");
-	left.setOrigin(Vector2f(0, left.getGlobalBounds().height));
-	right.setOrigin(Vector2f(right.getGlobalBounds().width, right.getGlobalBounds().height));
-	plus.setOrigin(Vector2f(0, plus.getGlobalBounds().height));
-	minus.setOrigin(Vector2f(0, plus.getGlobalBounds().height));
-
+	picture.is_initializing_toolbar(picture);
 	sys.window_size = window.getSize();
 	picture_mid(sys.window_size, picture);
 
-	start_program(window, files, picture, left, right, plus, minus, sys, view);
+	start_program(window, files, picture, sys, view);
 
 	return 0;
 }
