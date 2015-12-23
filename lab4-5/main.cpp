@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "ñonfig.h"
+#include "config.h"
 #include <string>
 #include <array>
 #include <iostream>
