@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "ñonfig.h"
+#include "Ã±onfig.h"
 #include <string>
 #include <array>
 #include <iostream>
@@ -31,7 +31,7 @@ Files get_file_list(string const & oldPath) {
 	unsigned long i = 0;
 
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//ïîèñê  ôàéëà
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//Ã¯Ã®Ã¨Ã±Ãª  Ã´Ã Ã©Ã«Ã 
 	if (firstFile != INVALID_HANDLE_VALUE) {
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -58,12 +58,6 @@ Files get_file_list(string const & oldPath) {
 	}
 	files.arr_size = i;
 	return files;
-}
-
-void texture_fun(Texture *& time_textur, Texture *textur, bool &act) {
-	textur = time_textur;
-	delete time_textur;
-	act = false;
 }
 
 void sprite_for_window(Picture &pict, Sys &sys, Files const &files) {
