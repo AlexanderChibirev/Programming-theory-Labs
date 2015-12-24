@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include "config.h"
 #include <string>
 #include <array>
@@ -13,7 +12,7 @@ bool is_image(string file_name) {
 	if (!strrchr(file_name.c_str(), '.')) {
 		return false;
 	}
-	std::array<string, 5> extArray = { "JPG","jpeg","png","gif","bmp" };
+	std::array<string, 5> extArray = { "jpg","jpeg","png","gif","bmp" };
 	return std::any_of(extArray.begin(), extArray.end(), [&](const std::string &ext) {
 		return ext == file_name.substr(file_name.find_last_of(".") + 1);
 	});
@@ -29,20 +28,20 @@ Files get_file_list(string const & oldPath) {
 	Files files;
 	files.path = oldPath;
 	unsigned long i = 0;
-
+	int m_arr_size = 0;
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//ïîèñê  ôàéëà
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//поиск  файла
 	if (firstFile != INVALID_HANDLE_VALUE) {
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				files.arr_size++;
+				m_arr_size++;
 				if (strlen(fileData.cFileName) > files.name_size)
 					files.name_size = int(strlen(fileData.cFileName));
 			}
 
 		} while (FindNextFile(firstFile, &fileData));
-
-		files.files = new string[files.arr_size];
+		files.files.resize(m_arr_size);// меняем размер вектора на количество файлов
+		//files.files = new string[files.arr_size];
 		i = 0;
 		firstFile = FindFirstFile(path.c_str(), &fileData);
 		do {
@@ -56,9 +55,9 @@ Files get_file_list(string const & oldPath) {
 		} while (FindNextFile(firstFile, &fileData));
 		FindClose(firstFile);
 	}
-	files.arr_size = i;
 	return files;
 }
+
 
 void sprite_for_window(Picture &pict, Sys &sys, Files const &files) {
 	pict.sprite = new Sprite;
@@ -101,7 +100,7 @@ string init_picture(RenderWindow & window, Files const &files, Picture &pic, Sys
 void drag(Picture &picture, Vector2f & cursor, Sys sys) {
 	Vector2f picture_pos = picture.sprite->getPosition();
 	if (cursor.x < sys.window_size.x && cursor.x > 0 && cursor.y < sys.window_size.y && cursor.y > 0)
-		picture.sprite->setPosition(cursor.x + picture.shift_x, cursor.y + picture.shift_y);
+		picture.sprite->setPosition(cursor.x + picture.shift_xy.x, cursor.y + picture.shift_xy.y);
 }
 
 void picture_mid(Vector2u window_size, Picture &picture) {
@@ -114,7 +113,7 @@ void switch_prev(RenderWindow & window, Picture & picture, Files & files, Sys & 
 	picture.zoom = 1;
 	picture.smoth_zoom = 0.25;
 	if (picture.num == 0) {
-		picture.num = files.arr_size;
+		picture.num = files.files.size();
 	}
 	picture.num--;
 	window.setTitle(init_picture(window, files, picture, sys));
@@ -123,7 +122,7 @@ void switch_prev(RenderWindow & window, Picture & picture, Files & files, Sys & 
 void switch_next(RenderWindow & window, Picture &picture, Files & files, Sys & sys) {
 	picture.zoom = 1;
 	picture.smoth_zoom = 0.25;
-	if (picture.num + 1 == files.arr_size) {
+	if (picture.num + 1 == files.files.size()) {
 		picture.num = 0;
 	}
 	else {
@@ -209,10 +208,10 @@ void picture_check_drag(Picture &picture, Vector2f pos, Sys sys) {
 	if (pos.y < picture_pos.y + pictHeight / 2 && pos.x < picture_pos.x + pictWidth / 2 &&
 		pos.y > picture_pos.y - pictHeight / 2 && pos.x > picture_pos.x - pictWidth / 2) {
 		picture.drag_move = true;
-		picture.st_drag_x = pos.x;
-		picture.st_drag_y = pos.y;
-		picture.shift_x = picture_pos.x - picture.st_drag_x;
-		picture.shift_y = picture_pos.y - picture.st_drag_y;
+		picture.st_drag_xy.x = pos.x;
+		picture.st_drag_xy.y = pos.y;
+		picture.shift_xy.x = picture_pos.x - picture.st_drag_xy.x;
+		picture.shift_xy.y = picture_pos.y - picture.st_drag_xy.y;
 	}
 }
 void start_program(RenderWindow &window, Files files, Picture &picture, Sys sys, View view) {
@@ -222,7 +221,7 @@ void start_program(RenderWindow &window, Files files, Picture &picture, Sys sys,
 		Vector2f pos = window.mapPixelToCoords(pixelPos);
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
-				delete[] files.files;
+				files.files.clear(); // очистка памяти
 				window.close();
 			}
 			if (picture.drag_move) {
@@ -262,7 +261,7 @@ int main() {
 	cout << "input path " << "\n";
 	//
 	while (!directory_exists(sys.dir_path)) {
-		sys.dir_path = "C:\\photo\\";
+		sys.dir_path = "C:\\images\\";
 		//cin >> sys.dir_path;
 	}
 	//
@@ -272,7 +271,7 @@ int main() {
 	window.setView(view);
 	Files files = get_file_list(sys.dir_path);
 
-	if (files.arr_size > 0) {
+	if (files.files.size() > 0) {
 		window.setTitle(init_picture(window, files, picture, sys));
 	}
 	picture.is_initializing_toolbar(picture);
