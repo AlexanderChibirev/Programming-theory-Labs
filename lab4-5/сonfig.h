@@ -1,33 +1,30 @@
 #pragma once
-using namespace sf;
+#include <SFML/Graphics.hpp>
 using namespace std;
+using namespace sf;
 
 
 struct Sys {
 	Vector2u window_size = Vector2u(800, 600);
 	string dir_path = "";
-}typedef Sys;
+};
 
 struct Files {
 	int name_size = 0;
-	int arr_size = 0;
-
-	string *files = nullptr;
+	vector<string> files;
 	string path;
-
-}typedef Files;
+};
 
 struct Picture {
 	int num = 0;
 	float zoom = 1.0;
 	float left_bias;
 	float top;
-	float shift_x;
-	float shift_y;
-	float st_drag_x, st_drag_y;	
 	float smoth_zoom = 0.25;
 	bool drag_move = false;
 	bool error = true;
+	Vector2f st_drag_xy;
+	Vector2f shift_xy;
 	string title = "Error";
 	Texture *texture = nullptr;
 	Sprite *sprite = nullptr;
@@ -57,8 +54,7 @@ struct Picture {
 		picture.minus.setOrigin(Vector2f(0, plus.getGlobalBounds().height));
 
 	}
-
-}typedef Picture;
+};
 
 
 void picture_mid(Vector2u window_size, Picture & picture);
