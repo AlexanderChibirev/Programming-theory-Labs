@@ -1,3 +1,4 @@
+#include <SFML/Graphics.hpp>
 #include "config.h"
 #include <string>
 #include <array>
@@ -6,15 +7,16 @@
 #include <windows.h>
 
 
+//в файлах которых нет точки не надо обрабатывать
 
-
-bool is_image(string file_name) { 
-	if (!strrchr(file_name.c_str(), '.')) {
+bool is_image(string file_name) {
+	string fileExt = file_name.substr(file_name.find_last_of(".") + 1);
+	std::array<string, 5> extArray = { "jpg","jpeg","png","gif","bmp" };
+	if (fileExt.size() == 0) {
 		return false;
 	}
-	std::array<string, 5> extArray = { "jpg","jpeg","png","gif","bmp" };
 	return std::any_of(extArray.begin(), extArray.end(), [&](const std::string &ext) {
-		return ext == file_name.substr(file_name.find_last_of(".") + 1);
+		return ext == fileExt;
 	});
 }
 
@@ -23,32 +25,18 @@ bool directory_exists(string &fileName) {
 	return (code != -1) && (FILE_ATTRIBUTE_DIRECTORY & code);
 }
 
-Files get_file_list(string const & oldPath) {
+Files get_file_list(string const & oldPath) {//убрать поле из path убрать структуру files, показывать ошибки если файл txt 
 	string path = oldPath + string("*");
 	Files files;
 	files.path = oldPath;
-	unsigned long i = 0;
-	int m_arr_size = 0;
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//поиск  файла
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);
 	if (firstFile != INVALID_HANDLE_VALUE) {
-		do {
-			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				m_arr_size++;
-				if (strlen(fileData.cFileName) > files.name_size)
-					files.name_size = int(strlen(fileData.cFileName));
-			}
-
-		} while (FindNextFile(firstFile, &fileData));
-		files.files.resize(m_arr_size);// меняем размер вектора на количество файлов
-		//files.files = new string[files.arr_size];
-		i = 0;
 		firstFile = FindFirstFile(path.c_str(), &fileData);
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 				if (is_image(fileData.cFileName)) {
-					files.files[i] = fileData.cFileName;
-					i++;
+					files.files.push_back(fileData.cFileName);				
 				}
 			}
 
@@ -262,7 +250,6 @@ int main() {
 	//
 	while (!directory_exists(sys.dir_path)) {
 		sys.dir_path = "C:\\images\\";
-		//cin >> sys.dir_path;
 	}
 	//
 	RenderWindow window(VideoMode(sys.window_size.x, sys.window_size.y), "Image Viewer");
