@@ -9,12 +9,6 @@ struct Sys {
 	string dir_path = "";
 };
 
-struct Files {
-	int name_size = 0;
-	vector<string> files;
-	string path;
-};
-
 struct Picture {
 	int num = 0;
 	float zoom = 1.0;
