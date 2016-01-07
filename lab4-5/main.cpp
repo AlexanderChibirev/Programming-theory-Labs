@@ -1,4 +1,3 @@
-
 #include <string>
 #include <array>
 #include <iostream>
@@ -13,69 +12,63 @@
 #include "config.h"
 
 
+void Picture::is_initializing_toolbar(Picture &picture) {
 
+	picture.left_image.loadFromFile("images/left.png");
+	picture.right_image.loadFromFile("images/right.png");
+	picture.plus_image.loadFromFile("images/plus.png");
+	picture.minus_image.loadFromFile("images/minus.png");
 
-bool is_image(string file_name, string path) { 
-	
+	picture.left.setTexture(picture.left_image);
+	picture.right.setTexture(picture.right_image);
+	picture.plus.setTexture(picture.plus_image);
+	picture.minus.setTexture(picture.minus_image);
+
+	picture.left.setOrigin(Vector2f(0, left.getGlobalBounds().height));
+	picture.right.setOrigin(Vector2f(right.getGlobalBounds().width, right.getGlobalBounds().height));
+	picture.plus.setOrigin(Vector2f(0, plus.getGlobalBounds().height));
+	picture.minus.setOrigin(Vector2f(0, plus.getGlobalBounds().height));
+
+}
+
+bool is_image(string file_name, string path) {
+
 	if (!strrchr(file_name.c_str(), '.')) {
 		return false;
 	}
+	std::string fExt = file_name.substr(file_name.find_last_of(".") + 1);
 	std::array<string, 5> extArray = { "jpg","jpeg","png","gif","bmp" };
-	if(std::any_of(extArray.begin(), extArray.end(), [&](const std::string &ext) {
-		return ext == file_name.substr(file_name.find_last_of(".") + 1);
-	})){
-	
-		Image image;
-		if (!(image.loadFromFile(path + file_name))) {
-			return false;
-		}
-		else {
-			return true;
-		}
-
-	}
-	return true;
+	return (std::any_of(extArray.begin(), extArray.end(), [&](const std::string &ext) {
+		return fExt == ext;
+	}));
 }
 
-bool directory_exists(string &fileName) { 
-	int code = GetFileAttributes((LPCWSTR)fileName.c_str());
+bool directory_exists(string &fileName) {
+	int code = GetFileAttributes(fileName.c_str());
 	return (code != -1) && (FILE_ATTRIBUTE_DIRECTORY & code);
 	//return true;
-}
-
-string narrow(std::wstring const& text)
-{
-	locale const loc("");
-	wchar_t const* from = text.c_str();
-	size_t const len = text.size();
-	vector<char> buffer(len + 1);
-	use_facet<std::ctype<wchar_t> >(loc).narrow(from, from + len, '_', &buffer[0]);
-	return string(&buffer[0], &buffer[len]);
 }
 
 
 vector<string> get_file_list(string const & oldPath) {
 	string path = oldPath + string("*");
 	vector<string> files;
-	
+
 	WIN32_FIND_DATA fileData;
-	HANDLE firstFile = FindFirstFile((LPCWSTR)path.c_str(), &fileData);//поиск  файла
+	HANDLE firstFile = FindFirstFile(path.c_str(), &fileData);//поиск  файла
 	if (firstFile != INVALID_HANDLE_VALUE) {
 		do {
 			if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				if (is_image(narrow(fileData.cFileName),oldPath)) {
-					files.push_back(narrow(fileData.cFileName));
+				if (is_image(fileData.cFileName, oldPath)) {
+					files.push_back(fileData.cFileName);
 				}
 			}
 
 		} while (FindNextFile(firstFile, &fileData));
-		
 		FindClose(firstFile);
 	}
-	
 	return files;
 }
-
 
 void sprite_for_window(Picture &pict, Sys &sys, vector<string> const &files) {
 	pict.sprite = new Sprite;
@@ -131,7 +124,7 @@ void switch_prev(RenderWindow & window, Picture & picture, vector<string> & file
 	picture.zoom = 1;
 	picture.smoth_zoom = 0.25;
 	if (picture.num == 0) {
-		picture.num = files.size();
+		picture.num = int(files.size());
 	}
 	picture.num--;
 	window.setTitle(init_picture(window, files, path, picture, sys));
@@ -179,7 +172,7 @@ void draw_elements(RenderWindow & window, Sys & sys, Picture & picture) {
 }
 
 
-void click_btn_mouse(RenderWindow &window, vector<string> files, string const &path,Picture &picture, Sys sys, Vector2f pos) {
+void click_btn_mouse(RenderWindow &window, vector<string> files, string const &path, Picture &picture, Sys sys, Vector2f pos) {
 	if (!picture.drag_move) {
 		if (picture.left.getGlobalBounds().contains(pos.x, pos.y)) {
 			switch_prev(window, picture, files, path, sys);
